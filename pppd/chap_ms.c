@@ -97,6 +97,9 @@
 #endif
 #include "pppcrypt.h"
 #include "magic.h"
+#ifdef ANDROID_CHANGES
+#include "cutils/properties.h"
+#endif
 
 static const char rcsid[] = RCSID;
 
@@ -398,9 +401,14 @@ chapms_handle_failure(unsigned char *inp, int len)
 	 * to use M=<message>, but it shouldn't hurt.  See
 	 * chapms[2]_verify_response.
 	 */
-	if (!strncmp(p, "E=", 2))
+       if (!strncmp(p, "E=", 2)) {
 		err = strtol(p + 2, NULL, 10); /* Remember the error code. */
-	else
+#ifdef ANDROID_CHANGES
+		char strerr[PROPERTY_VALUE_MAX];
+		snprintf(strerr, sizeof(strerr), "%d", err);
+		property_set("pppd.errcode", strerr);
+#endif
+	} else
 		goto print_msg; /* Message is badly formatted. */
 
 	if (len && ((p = strstr(p, " M=")) != NULL)) {
