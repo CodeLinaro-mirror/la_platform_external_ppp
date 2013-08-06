@@ -399,7 +399,7 @@ chapms_handle_failure(unsigned char *inp, int len)
 	 * chapms[2]_verify_response.
 	 */
 	if (!strncmp(p, "E=", 2))
-		err = strtol(p, NULL, 10); /* Remember the error code. */
+		err = strtol(p + 2, NULL, 10); /* Remember the error code. */
 	else
 		goto print_msg; /* Message is badly formatted. */
 
