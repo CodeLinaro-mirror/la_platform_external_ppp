@@ -55,6 +55,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifdef ANDROID_CHANGES
+#include <cutils/properties.h>
+#endif
 
 #include "pppd.h"
 #include "fsm.h"
@@ -1713,10 +1716,24 @@ ipcp_up(f)
     script_setenv("IPLOCAL", ip_ntoa(go->ouraddr), 0);
     script_setenv("IPREMOTE", ip_ntoa(ho->hisaddr), 1);
 
-    if (go->dnsaddr[0])
+    if (go->dnsaddr[0]) {
 	script_setenv("DNS1", ip_ntoa(go->dnsaddr[0]), 0);
-    if (go->dnsaddr[1])
+#ifdef ANDROID_CHANGES
+	char ppp_dns[PROPERTY_KEY_MAX];
+	unsigned int length = snprintf(ppp_dns, sizeof(ppp_dns), "net.%s.dns1", ifname);
+	if(length < sizeof(ppp_dns))
+	    property_set(ppp_dns, ip_ntoa(go->dnsaddr[0]));
+#endif
+    }
+    if (go->dnsaddr[1]) {
 	script_setenv("DNS2", ip_ntoa(go->dnsaddr[1]), 0);
+#ifdef ANDROID_CHANGES
+	char ppp_dns[PROPERTY_KEY_MAX];
+	unsigned int length = snprintf(ppp_dns, sizeof(ppp_dns), "net.%s.dns2", ifname);
+	if(length < sizeof(ppp_dns))
+	    property_set(ppp_dns, ip_ntoa(go->dnsaddr[1]));
+#endif
+    }
     if (usepeerdns && (go->dnsaddr[0] || go->dnsaddr[1])) {
 	script_setenv("USEPEERDNS", "1", 0);
 	create_resolv(go->dnsaddr[0], go->dnsaddr[1]);
